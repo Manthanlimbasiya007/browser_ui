@@ -12,9 +12,16 @@ class browserscreen extends StatefulWidget {
 
 class _browserscreenState extends State<browserscreen> {
   TextEditingController txtsearch = TextEditingController();
-
   BrowserProvider? browserProviderTrue;
   BrowserProvider? browserProviderFalse;
+  PullToRefreshController? pullToRefreshController;
+  @override
+  void initState() {
+    super.initState();
+    pullToRefreshController =PullToRefreshController(onRefresh: () {
+      browserProviderTrue!.inAppWebViewController?.reload();
+    },);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,19 +58,23 @@ class _browserscreenState extends State<browserscreen> {
                   child: InAppWebView(
                     initialUrlRequest:
                         URLRequest(url: Uri.parse("https://www.google.com/")),
+                    pullToRefreshController: pullToRefreshController!,
                     onWebViewCreated: (controller) {
                       browserProviderTrue!.inAppWebViewController = controller;
                     },
                     onLoadError: (controller, url, code, message) {
+                      pullToRefreshController!.endRefreshing();
                       browserProviderTrue!.inAppWebViewController = controller;
                     },
                     onLoadStart: (controller, url) {
                       browserProviderTrue!.inAppWebViewController = controller;
                     },
                     onLoadStop: (controller, url) {
+                      pullToRefreshController!.endRefreshing();
                       browserProviderTrue!.inAppWebViewController = controller;
                     },
                     onProgressChanged: (controller, progress) {
+                      pullToRefreshController!.endRefreshing();
                       browserProviderFalse!.changeProgress(progress / 100);
                     },
                   ),
@@ -91,7 +102,7 @@ class _browserscreenState extends State<browserscreen> {
                   ],
                 ),
               ) ,
-            )
+            ),
           ],
         ),
       ),
